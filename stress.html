@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>压力测试</title>
+<style>
+  :root{
+    --bg:#f2f5f3;
+    --surface:#ffffff;
+    --surface2:#e8efec;
+    --ink:#17211d;
+    --muted:#5b6b63;
+    --line:#d7e0db;
+    --teal:#0f766e;
+    --teal-dark:#0b5e57;
+    --teal-soft:#d9ebe7;
+    --amber:#b45309;
+    --amber-soft:#fdeeda;
+    --red:#b42318;
+    --red-soft:#fdecea;
+    --green:#157347;
+    --green-soft:#e2f2e7;
+    --shadow:0 10px 30px rgba(20,40,32,.08);
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#101613;
+      --surface:#1a221e;
+      --surface2:#232d28;
+      --ink:#eef4f0;
+      --muted:#a7b8ae;
+      --line:#2e3b35;
+      --teal:#2dd4bf;
+      --teal-dark:#5eead4;
+      --teal-soft:#12332e;
+      --amber:#fbbf24;
+      --amber-soft:#3a2c10;
+      --red:#fda4af;
+      --red-soft:#3d1e22;
+      --green:#6ee7a0;
+      --green-soft:#173527;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 48px}
+  /* header */
+  .top{padding:10px 2px 18px}
+  .top h1{font-size:32px;line-height:1.2;margin:0 0 8px;letter-spacing:-.02em;font-weight:800}
+  .top p{margin:0;color:var(--muted);font-size:15px;max-width:34em}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{
+    font-size:13px;color:var(--muted);background:var(--surface);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+  }
+  .chip b{color:var(--ink);font-weight:700}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:22px 20px;
+  }
+  .card + .card{margin-top:16px}
+
+  /* views */
+  .view{display:none}
+  .view.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){
+    .view.active{animation:none}
+    *{transition:none !important}
+  }
+
+  /* intro */
+  .intro-lead{font-size:16px;margin:0 0 14px}
+  .how{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  .how li{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+  .how .n{
+    flex:0 0 26px;width:26px;height:26px;border-radius:50%;
+    background:var(--teal-soft);color:var(--teal);font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .how li span{color:var(--ink)}
+  .note{
+    margin-top:16px;font-size:13px;color:var(--muted);
+    background:var(--surface2);border-radius:12px;padding:12px 14px;
+  }
+
+  .btn{
+    appearance:none;border:0;cursor:pointer;font:inherit;font-weight:700;
+    min-height:48px;padding:12px 22px;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .08s ease, background .15s ease, opacity .15s ease;
+    text-decoration:none;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--teal);color:#fff;width:100%;font-size:16px;margin-top:20px}
+  @media (prefers-color-scheme: dark){.btn-primary{color:#06231f}}
+  .btn-primary:hover{background:var(--teal-dark)}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);min-height:44px;padding:10px 16px;font-size:14px}
+  .btn-ghost:hover{color:var(--ink)}
+  .btn-small{width:auto;margin-top:0;font-size:14px;min-height:44px;padding:10px 18px}
+
+  /* quiz */
+  .progress-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .progress-head .qcount{font-size:13px;color:var(--muted);font-weight:600}
+  .progress-head .qcount b{color:var(--teal);font-size:15px}
+  .bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:22px}
+  .bar i{display:block;height:100%;background:var(--teal);border-radius:99px;width:0;transition:width .3s ease}
+  .q-text{font-size:20px;line-height:1.45;font-weight:700;margin:0 0 6px;min-height:58px}
+  .q-sub{font-size:13.5px;color:var(--muted);margin:0 0 18px}
+  .opts{display:grid;gap:10px}
+  .opt{
+    width:100%;text-align:left;cursor:pointer;font:inherit;
+    background:var(--surface);border:1.5px solid var(--line);color:var(--ink);
+    border-radius:14px;padding:14px 16px;min-height:56px;
+    display:flex;align-items:center;gap:12px;font-size:16px;font-weight:600;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .opt .dot{
+    flex:0 0 22px;width:22px;height:22px;border-radius:50%;
+    border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+  }
+  .opt .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:transparent}
+  .opt:hover{border-color:var(--teal)}
+  .opt.selected{border-color:var(--teal);background:var(--teal-soft)}
+  .opt.selected .dot{border-color:var(--teal)}
+  .opt.selected .dot::after{background:var(--teal)}
+  .opt .freq{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap}
+  .quiz-foot{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:12px}
+  .quiz-foot .hint{font-size:12.5px;color:var(--muted)}
+
+  /* result */
+  .score-wrap{text-align:center;padding:6px 0 2px}
+  .score-num{font-size:64px;line-height:1;font-weight:800;letter-spacing:-.03em}
+  .score-num small{font-size:20px;color:var(--muted);font-weight:600;letter-spacing:0}
+  .level-badge{
+    display:inline-block;margin-top:12px;padding:7px 16px;border-radius:999px;
+    font-weight:800;font-size:15px;
+  }
+  .lv-low{background:var(--green-soft);color:var(--green)}
+  .lv-mid{background:var(--amber-soft);color:var(--amber)}
+  .lv-high{background:var(--red-soft);color:var(--red)}
+  .gauge{margin:22px 4px 8px;position:relative}
+  .gauge-track{height:14px;border-radius:99px;display:flex;overflow:hidden}
+  .gauge-track i{display:block;height:100%}
+  .g1{background:#3d9970;width:32.5%}
+  .g2{background:#e8a33d;width:32.5%}
+  .g3{background:#d9534a;width:35%}
+  .gauge-marker{
+    position:absolute;top:-7px;width:4px;height:28px;border-radius:2px;
+    background:var(--ink);transform:translateX(-50%);transition:left .6s ease;
+    box-shadow:0 0 0 2px var(--surface);
+  }
+  .gauge-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+  .result-text{font-size:15px;margin:16px 0 0;text-align:left}
+  .result-text p{margin:0 0 10px}
+  .dims{margin-top:18px;text-align:left;display:grid;gap:14px}
+  .dim-head{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px}
+  .dim-head b{font-weight:700}
+  .dim-head span{color:var(--muted)}
+  .dim-bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .dim-bar i{display:block;height:100%;border-radius:99px;background:var(--teal);width:0;transition:width .6s ease}
+  .dim-bar i.hot{background:#d9534a}
+  .dim-bar i.warm{background:#e8a33d}
+
+  h2.sec{font-size:18px;margin:0 0 6px;font-weight:800}
+  .sec-sub{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+  .tips{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+  .tips li{display:flex;gap:12px;font-size:14.5px;align-items:flex-start}
+  .tips .ic{
+    flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:var(--teal-soft);
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+  }
+  .tips b{display:block;font-size:15px}
+  .tips span{color:var(--muted);font-size:13.5px}
+
+  /* breathing */
+  .breath-stage{display:flex;flex-direction:column;align-items:center;padding:10px 0 4px}
+  .breath-circle{
+    width:150px;height:150px;border-radius:50%;
+    background:var(--teal-soft);border:2px solid var(--teal);
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    transition:transform 4s ease-in-out;
+    margin:8px 0 14px;
+  }
+  .breath-circle .in{font-size:15px;font-weight:700;color:var(--teal-dark);padding:0 18px;line-height:1.4}
+  @media (prefers-color-scheme: dark){.breath-circle .in{color:var(--teal)}}
+  .breath-count{font-size:13px;color:var(--muted);min-height:20px}
+  .breath-btns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+
+  .disclaimer{font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.7}
+  .disclaimer b{color:var(--ink)}
+  footer{margin-top:22px;text-align:center;font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>压力测试</h1>
+    <p>回想最近一个月，凭第一感觉回答 10 道题，看看你现在的压力处在什么水平。</p>
+    <div class="meta-row">
+      <span class="chip">共 <b>10 题</b></span>
+      <span class="chip">约 <b>1 分钟</b></span>
+      <span class="chip">满分 <b>40 分</b></span>
+      <span class="chip">结果 <b>不保存、不上传</b></span>
+    </div>
+  </header>
+
+  <!-- 开始页 -->
+  <section class="card view active" id="view-start">
+    <p class="intro-lead">这是一份常用的感知压力自测（PSS-10 量表思路）。没有对错，按最近一个月最真实的感受选就行。</p>
+    <ul class="how">
+      <li><span class="n">1</span><div><span>逐题作答</span> —— 每题选一个最贴近你的频率：从不、偶尔、有时、经常、总是。</div></li>
+      <li><span class="n">2</span><div><span>马上出结果</span> —— 答完立刻看到总分、压力等级，还有哪方面最让你累。</div></li>
+      <li><span class="n">3</span><div><span>带走一个放松练习</span> —— 结果页有 1 分钟呼吸练习，测完就能跟着做。</div></li>
+    </ul>
+    <div class="note">提醒：这是自我了解工具，不是医学诊断。分数高只说明这段时间你扛得有点多，不代表你有什么问题。</div>
+    <button class="btn btn-primary" id="btn-start" type="button">开始测试</button>
+  </section>
+
+  <!-- 答题页 -->
+  <section class="card view" id="view-quiz" aria-live="polite">
+    <div class="progress-head">
+      <span class="qcount">第 <b id="q-now">1</b> / 10 题</span>
+      <span class="qcount" id="q-done">已答 0 题</span>
+    </div>
+    <div class="bar"><i id="bar-fill"></i></div>
+    <p class="q-text" id="q-text"></p>
+    <p class="q-sub">最近一个月里，这种情况出现的频率是？</p>
+    <div class="opts" id="opts"></div>
+    <div class="quiz-foot">
+      <button class="btn btn-ghost" id="btn-back" type="button">← 上一题</button>
+      <span class="hint">点选后自动进入下一题</span>
+    </div>
+  </section>
+
+  <!-- 结果页 -->
+  <div class="view" id="view-result">
+    <section class="card">
+      <div class="score-wrap">
+        <div class="score-num"><span id="score-num">0</span><small> / 40 分</small></div>
+        <div><span class="level-badge lv-low" id="level-badge">压力较低</span></div>
+        <div class="gauge">
+          <div class="gauge-track"><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>
+          <div class="gauge-marker" id="gauge-marker" style="left:0%"></div>
+          <div class="gauge-labels"><span>0 · 较低</span><span>14 · 中等</span><span>27 · 偏高</span><span>40</span></div>
+        </div>
+        <div class="result-text" id="result-text"></div>
+        <div class="dims">
+          <div>
+            <div class="dim-head"><b>失控感</b><span id="dim1-val"></span></div>
+            <div class="dim-bar"><i id="dim1-bar"></i></div>
+          </div>
+          <div>
+            <div class="dim-head"><b>掌控感（越高越好）</b><span id="dim2-val"></span></div>
+            <div class="dim-bar"><i id="dim2-bar"></i></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-restart" type="button">重新测一次</button>
+    </section>
+
+    <section class="card">
+      <h2 class="sec">接下来可以试试</h2>
+      <p class="sec-sub" id="tips-sub">按你这次的结果挑的，先做最容易的一件就行。</p>
+      <ul class="tips" id="tips"></ul>
+    </section>
+
+    <section class="card">
+      <h2 class="sec">1 分钟呼吸放松</h2>
+      <p class="sec-sub">跟着圆圈的节奏：吸气 4 秒 → 屏住 4 秒 → 呼气 6 秒。做 4 轮约 1 分钟。</p>
+      <div class="breath-stage">
+        <div class="breath-circle" id="breath-circle"><span class="in" id="breath-label">准备好了<br>点开始</span></div>
+        <div class="breath-count" id="breath-count"></div>
+        <div class="breath-btns">
+          <button class="btn btn-primary btn-small" id="btn-breath" type="button">开始呼吸练习</button>
+        </div>
+      </div>
+      <p class="disclaimer"><b>说明：</b>本测试参照感知压力量表（PSS-10）的题目与计分方式，分段参考常用划分：0–13 分较低、14–26 分中等、27–40 分偏高。结果只反映你最近一个月的感受，不能代替医生或心理咨询师的判断。如果压力持续两周以上、明显影响睡眠和日常状态，或者出现伤害自己的念头，请及时联系学校心理中心、信任的老师家人，或拨打全国心理援助热线 <b>12356</b>。</p>
+    </section>
+  </div>
+
+  <footer>答题和结果只在这台设备上显示，关掉页面就没了。</footer>
+</div>
+
+<script>
+(function(){
+  // reverse: true 表示反向计分（掌控感类题目）
+  var QUESTIONS = [
+    { t:"因为一些意料之外的事情发生，而感到心烦意乱。", reverse:false, dim:"loss" },
+    { t:"感觉无法掌控生活中那些重要的事情。", reverse:false, dim:"loss" },
+    { t:"感到紧张不安、压力很大。", reverse:false, dim:"loss" },
+    { t:"能顺利处理好生活中令人烦躁的小麻烦。", reverse:true, dim:"ctrl" },
+    { t:"感觉自己能有效应对生活中发生的重要变化。", reverse:true, dim:"ctrl" },
+    { t:"对自己处理个人问题的能力，感到有信心。", reverse:true, dim:"ctrl" },
+    { t:"感觉事情都在按自己希望的方向发展。", reverse:true, dim:"ctrl" },
+    { t:"发现自己根本应付不了那些必须做的事情。", reverse:false, dim:"loss" },
+    { t:"能控制住生活中那些惹你生气、烦躁的事。", reverse:true, dim:"ctrl" },
+    { t:"感觉困难堆积得太多，已经没法克服了。", reverse:false, dim:"loss" }
+  ];
+  var OPTIONS = [
+    { label:"从不", freq:"几乎没有过" },
+    { label:"偶尔", freq:"一个月一两次" },
+    { label:"有时", freq:"时不时会有" },
+    { label:"经常", freq:"一周好几次" },
+    { label:"总是", freq:"几乎天天如此" }
+  ];
+
+  var answers = new Array(QUESTIONS.length).fill(null);
+  var current = 0;
+
+  var views = {
+    start: document.getElementById('view-start'),
+    quiz: document.getElementById('view-quiz'),
+    result: document.getElementById('view-result')
+  };
+  function show(name){
+    for (var k in views) views[k].classList.toggle('active', k===name);
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  var qText = document.getElementById('q-text');
+  var qNow = document.getElementById('q-now');
+  var qDone = document.getElementById('q-done');
+  var barFill = document.getElementById('bar-fill');
+  var optsBox = document.getElementById('opts');
+  var btnBack = document.getElementById('btn-back');
+
+  function renderQuestion(){
+    var q = QUESTIONS[current];
+    qText.textContent = q.t;
+    qNow.textContent = current + 1;
+    var done = answers.filter(function(a){return a!==null;}).length;
+    qDone.textContent = "已答 " + done + " 题";
+    barFill.style.width = ((current) / QUESTIONS.length * 100) + "%";
+    btnBack.style.visibility = current === 0 ? "hidden" : "visible";
+    optsBox.innerHTML = "";
+    OPTIONS.forEach(function(opt, idx){
+      var b = document.createElement('button');
+      b.type = "button";
+      b.className = "opt" + (answers[current] === idx ? " selected" : "");
+      b.innerHTML = '<span class="dot"></span><span>' + opt.label + '</span><span class="freq">' + opt.freq + '</span>';
+      b.addEventListener('click', function(){ pick(idx); });
+      optsBox.appendChild(b);
+    });
+  }
+
+  function pick(idx){
+    answers[current] = idx;
+    var btns = optsBox.querySelectorAll('.opt');
+    btns.forEach(function(b,i){ b.classList.toggle('selected', i===idx); });
+    setTimeout(function(){
+      if (current < QUESTIONS.length - 1){
+        current++;
+        renderQuestion();
+      } else {
+        barFill.style.width = "100%";
+        finish();
+      }
+    }, 180);
+  }
+
+  btnBack.addEventListener('click', function(){
+    if (current > 0){ current--; renderQuestion(); }
+  });
+
+  document.getElementById('btn-start').addEventListener('click', function(){
+    show('quiz');
+    renderQuestion();
+  });
+
+  document.getElementById('btn-restart').addEventListener('click', function(){
+    stopBreath();
+    answers = new Array(QUESTIONS.length).fill(null);
+    current = 0;
+    show('quiz');
+    renderQuestion();
+  });
+
+  var TIPS = {
+    low: [
+      { ic:"🌿", b:"保持现在的节奏", s:"你现在的状态不错，把让你稳住的习惯（睡眠、运动、规律吃饭）继续保持就好。" },
+      { ic:"📌", b:"提前给忙的时候留缓冲", s:"压力低的时候最适合提前安排：把下周最重要的一件事先排好，真忙起来就不慌。" },
+      { ic:"💬", b:"把状态分享给身边人", s:"状态好的时候多和朋友、家人聊聊，关系稳了，忙起来时也更扛得住。" }
+    ],
+    mid: [
+      { ic:"😴", b:"先把睡眠补回来", s:"这周先固定一个上床时间，比平时早半小时。睡眠一稳，白天的烦躁会明显少一截。" },
+      { ic:"✂️", b:"把大任务切小", s:"挑最压你的那件事，只写下「第一步、只需要 10 分钟」的那种，做完一步再想下一步。" },
+      { ic:"🚶", b:"每天动 20 分钟", s:"快走、骑车、打球都行。运动是见效最快的减压方式之一，不用练到累，微微出汗就够。" },
+      { ic:"📵", b:"给手机留一段离线时间", s:"睡前半小时不刷短视频和消息，改成洗澡、听歌或发呆，大脑需要真正的空档。" }
+    ],
+    high: [
+      { ic:"🫁", b:"先做下面的呼吸练习", s:"不用想通所有事，先把身体的紧张降下来。跟着做完 4 轮，再决定下一步。" },
+      { ic:"✂️", b:"今天只留一件最重要的事", s:"其他先放一放，或者跟相关的人说明要延期。扛不住的时候，减少任务比硬撑更管用。" },
+      { ic:"💬", b:"找一个人说出来", s:"跟朋友、家人或老师讲讲你最近的状态，不用等想清楚再开口，说出来本身就在减压。" },
+      { ic:"🏥", b:"别硬扛，去学校心理中心聊聊", s:"如果这种状态已经持续两周以上、睡不好吃不下，去心理中心或医院看看是正常选择，就像感冒看医生一样。也可以先打 12356 心理援助热线。" }
+    ]
+  };
+
+  function finish(){
+    var total = 0, loss = 0, ctrlRaw = 0;
+    QUESTIONS.forEach(function(q, i){
+      var v = answers[i];
+      var scored = q.reverse ? (4 - v) : v;
+      total += scored;
+      if (q.dim === "loss") loss += scored;
+      else ctrlRaw += v; // 掌控感用原始分，越高越好，满分 20
+    });
+
+    var level, badgeClass, text;
+    if (total <= 13){
+      level = "压力较低"; badgeClass = "lv-low";
+      text = "<p>最近一个月，你整体上是稳得住的。烦心事有，但大多在你能处理的范围里，恢复得也比较快。</p><p>这个状态不用刻意改变，留意别让忙碌慢慢堆积就行——压力最容易在「一直没事」的阶段悄悄攒起来。</p>";
+    } else if (total <= 26){
+      level = "压力中等"; badgeClass = "lv-mid";
+      text = "<p>最近一个月，你扛了不少事，时不时会觉得累、烦、脑子停不下来。这是很常见的状态，说明负荷已经到了需要主动调节的程度。</p><p>好消息是这个阶段调整起来最有效：睡眠、运动、把任务切小，挑一件先做一周，就能感觉到变化。</p>";
+    } else {
+      level = "压力偏高"; badgeClass = "lv-high";
+      text = "<p>最近一个月，你明显感觉事情多、失控感强，困难像堆在一起。这不是你不够努力，是负荷真的超了。</p><p>先别急着「振作起来」，先减负、先休息、先找人分担。如果这种状态持续两周以上还缓不过来，请认真考虑去学校心理中心或医院聊聊，也可以拨打 12356。</p>";
+    }
+
+    document.getElementById('score-num').textContent = total;
+    var badge = document.getElementById('level-badge');
+    badge.textContent = level;
+    badge.className = "level-badge " + badgeClass;
+    document.getElementById('result-text').innerHTML = text;
+
+    var marker = document.getElementById('gauge-marker');
+    marker.style.left = "0%";
+    requestAnimationFrame(function(){
+      setTimeout(function(){ marker.style.left = (total / 40 * 100) + "%"; }, 60);
+    });
+
+    // 失控感满分 20（5 题），掌控感满分 20（5 题原始分）
+    var lossPct = Math.round(loss / 20 * 100);
+    var ctrlPct = Math.round(ctrlRaw / 20 * 100);
+    document.getElementById('dim1-val').textContent = loss + " / 20";
+    document.getElementById('dim2-val').textContent = ctrlRaw + " / 20";
+    var d1 = document.getElementById('dim1-bar');
+    var d2 = document.getElementById('dim2-bar');
+    d1.className = lossPct >= 65 ? "hot" : (lossPct >= 40 ? "warm" : "");
+    d2.className = ctrlPct < 35 ? "hot" : (ctrlPct < 60 ? "warm" : "");
+    requestAnimationFrame(function(){
+      setTimeout(function(){
+        d1.style.width = lossPct + "%";
+        d2.style.width = ctrlPct + "%";
+      }, 60);
+    });
+
+    var key = total <= 13 ? "low" : (total <= 26 ? "mid" : "high");
+    var tipsBox = document.getElementById('tips');
+    tipsBox.innerHTML = "";
+    TIPS[key].forEach(function(t){
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="ic">' + t.ic + '</span><div><b>' + t.b + '</b><span>' + t.s + '</span></div>';
+      tipsBox.appendChild(li);
+    });
+
+    show('result');
+  }
+
+  /* ---------- 呼吸练习 ---------- */
+  var circle = document.getElementById('breath-circle');
+  var bLabel = document.getElementById('breath-label');
+  var bCount = document.getElementById('breath-count');
+  var bBtn = document.getElementById('btn-breath');
+  var breathing = false, bTimer = null, round = 0;
+  var PHASES = [
+    { label:"吸气…", sec:4, scale:1.22 },
+    { label:"屏住…", sec:4, scale:1.22 },
+    { label:"慢慢呼气…", sec:6, scale:1.0 }
+  ];
+  var phaseIdx = 0, secLeft = 0;
+
+  function setPhase(i){
+    phaseIdx = i;
+    var p = PHASES[i];
+    secLeft = p.sec;
+    circle.style.transitionDuration = (i === 1 ? "0.4s" : p.sec + "s");
+    circle.style.transform = "scale(" + p.scale + ")";
+    bLabel.textContent = p.label.replace("…","") ;
+    bCount.textContent = "第 " + round + " / 4 轮 · " + p.label + " " + secLeft + " 秒";
+  }
+  function tick(){
+    secLeft--;
+    var p = PHASES[phaseIdx];
+    if (secLeft > 0){
+      bCount.textContent = "第 " + round + " / 4 轮 · " + p.label + " " + secLeft + " 秒";
+      return;
+    }
+    if (phaseIdx < PHASES.length - 1){
+      setPhase(phaseIdx + 1);
+    } else if (round < 4){
+      round++;
+      setPhase(0);
+    } else {
+      stopBreath(true);
+    }
+  }
+  function startBreath(){
+    breathing = true;
+    round = 1;
+    bBtn.textContent = "停止练习";
+    setPhase(0);
+    bTimer = setInterval(tick, 1000);
+  }
+  function stopBreath(done){
+    if (bTimer) clearInterval(bTimer);
+    bTimer = null;
+    breathing = false;
+    circle.style.transitionDuration = "0.6s";
+    circle.style.transform = "scale(1)";
+    bBtn.textContent = "再来一轮";
+    if (done){
+      bLabel.innerHTML = "做完了<br>感觉一下身体";
+      bCount.textContent = "4 轮完成。肩膀放松，慢慢睁开眼就行。";
+    } else {
+      bLabel.innerHTML = "准备好了<br>点开始";
+      bCount.textContent = "";
+      bBtn.textContent = "开始呼吸练习";
+    }
+  }
+  bBtn.addEventListener('click', function(){
+    if (breathing) stopBreath(false);
+    else startBreath();
+  });
+})();
+</script>
+</body>
+</html>
